@@ -10,10 +10,13 @@ class memory:
         self.mem=[0]*(159-95)
     def __getitem__(self,key):
         if key>=69 and key<=159:
+            print("")
             return self.mem[key-69]
+        
+
 class io:
     def __init__(self):
-        self.ioaddr=[0]*();
+        self.ioaddr=[0]*(95-31);
 
 
 class Instruc:

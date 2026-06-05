@@ -2,6 +2,7 @@ class stateMachine:
     def __init__(self):
         self.pc=0;
         self.regfile=[0]*32;
+        self.spl=0;
         
 
 
@@ -17,10 +18,19 @@ class memory:
 class io:
     def __init__(self):
         self.__ioaddr=[0]*(95-31);
+        self.funcList=[self.noop]*(95-31);
+        self.funcList[0x3d]=self.setspl;
     def __getitem__(self,key,value):
         return self.__ioaddr[key]
     def __setitem__(self,key,value):
         self.__ioaddr[key]=value;
+        self.funcList[key](key,value)
+    def setspl(self,key,value):
+        cpu.spl=value;
+        print(f"SPL: {cpu.spl}",end="")
+    def noop(self,key,value):
+        pass
+        
 
 
 class Instruc:
@@ -49,13 +59,16 @@ def eor(p):
 def out(p):
     srcReg=(p&0b0000000111110000)>>4
     ioport=(p&0b0000000000001111)|((p&0b0000011000000000)>>5)
+    print("OUT",f"R{srcReg} -> IO",hex(ioport),end="   ");
     io_mem[ioport]=cpu.regfile[srcReg];
-    print("OUT",f"R{srcReg} ->",hex(ioport));
+    print("");
+    
 
 def ldi(p):
-    reg=(p&0b0000000111110000)>>4;
-    constant=()
-    pass
+    reg=((p&0b0000000011110000)>>4)+16;
+    constant=((p&0b0000111100000000)>>4)|(p&0b0000000000001111)
+    print(f"NUM: {constant} -> R{reg}")
+    cpu.regfile[reg]=constant
 
 InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
               Instruc("eor",0b1111110000000000,0b0010010000000000,eor),

@@ -44,6 +44,8 @@ cpu=stateMachine();
 io_mem=io();
 def rjump(p):
     res=p&0b0000111111111111;
+    if (res & 0b0000100000000000) > 0:
+        res-=4096
     res*=2;
     
     cpu.pc+=res;
@@ -70,10 +72,18 @@ def ldi(p):
     print(f"NUM: {constant} -> R{reg}")
     cpu.regfile[reg]=constant
 
+
+def rcall(p):
+
+    print("RCALL");
+
+
+
 InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
               Instruc("eor",0b1111110000000000,0b0010010000000000,eor),
               Instruc("out",0b1111100000000000,0b1011100000000000,out),
-              Instruc("ldi",0b1111000000000000,0b1110000000000000,ldi)]
+              Instruc("ldi",0b1111000000000000,0b1110000000000000,ldi),
+              Instruc("rcall",0b1111000000000000,0b1101000000000000,rcall)]
 
 file=open("main.bin","rb")
 content=file.read()

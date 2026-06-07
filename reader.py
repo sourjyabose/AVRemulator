@@ -10,20 +10,20 @@ class memory:
     def __init__(self,):
         self.mem=[0]*(159-95)
     def __getitem__(self,key):
-        if key>=69 and key<=159:
-            print("Accessing Memory",key)
-            return self.mem[key-69]
+        if key>=96 and key<=159:
+            print("Get Memory",hex(key),end="    ")
+            return self.mem[key-96]
     def __setitem__(self,key,value):
-        if key>=69 and key<=159:
-            print("Stroing in Memory",key)
-            self.mem[key-69]=value;   
+        if key>=96 and key<=159:
+            print("NUM:",value,"->","Memory",hex(key),end="    ")
+            self.mem[key-96]=value;   
 
 class io:
     def __init__(self):
         self.__ioaddr=[0]*(95-31);
         self.funcList=[self.noop]*(95-31);
         self.funcList[0x3d]=self.setspl;
-    def __getitem__(self,key,value):
+    def __getitem__(self,key):
         return self.__ioaddr[key]
     def __setitem__(self,key,value):
         self.__ioaddr[key]=value;
@@ -44,10 +44,11 @@ class Instruc:
         self.handler=handler;
 
 cpu=stateMachine();
+ram=memory()
 io_mem=io();
 
 def push(p):
-    io_mem[cpu.spl]=p;
+    ram[cpu.spl]=p;
     cpu.spl-=1;
 
 def rjump(p):
@@ -81,13 +82,15 @@ def ldi(p):
 
 
 def rcall(p):
-    lowrbyte=cpu.pc&0b0000000011111111
-    highbyte=cpu.pc&0b1111111100000000
-    push(lowrbyte)
-    push(highbyte)
     offset=(p&0b0000111111111111)
     cpu.pc+=2*offset;
-    print("RCALL",hex(cpu.pc))
+    print("RCALL",hex(cpu.pc),end="    ")
+    lowrbyte=cpu.pc&0b0000000011111111
+    highbyte=(cpu.pc&0b1111111100000000)>>8
+    push(lowrbyte)
+    push(highbyte)
+    print("");
+    
 
 
 

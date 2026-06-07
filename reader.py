@@ -13,7 +13,10 @@ class memory:
         if key>=69 and key<=159:
             print("Accessing Memory",key)
             return self.mem[key-69]
-        
+    def __setitem__(self,key,value):
+        if key>=69 and key<=159:
+            print("Stroing in Memory",key)
+            self.mem[key-69]=value;   
 
 class io:
     def __init__(self):
@@ -42,12 +45,16 @@ class Instruc:
 
 cpu=stateMachine();
 io_mem=io();
+
+def push(p):
+    io_mem[cpu.spl]=p;
+    cpu.spl-=1;
+
 def rjump(p):
     res=p&0b0000111111111111;
     if (res & 0b0000100000000000) > 0:
         res-=4096
     res*=2;
-    
     cpu.pc+=res;
     print("RJUMP by",res,"To",hex(cpu.pc));
 
@@ -74,8 +81,13 @@ def ldi(p):
 
 
 def rcall(p):
-
-    print("RCALL");
+    lowrbyte=cpu.pc&0b0000000011111111
+    highbyte=cpu.pc&0b1111111100000000
+    push(lowrbyte)
+    push(highbyte)
+    offset=(p&0b0000111111111111)
+    cpu.pc+=2*offset;
+    print("RCALL",hex(cpu.pc))
 
 
 

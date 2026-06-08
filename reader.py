@@ -90,6 +90,12 @@ def rcall(p):
     push(lowrbyte)
     push(highbyte)
     print("");
+
+def sbi(p):
+    byteorder=p&0b0000000000000111;
+    ioaddr=(p&0b0000000011111000)>>3;
+    io_mem[ioaddr]|=1<<byteorder;
+    print("SBI",f"B{byteorder}","-S>","IO",hex(ioaddr),)
     
 
 
@@ -98,7 +104,8 @@ InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
               Instruc("eor",0b1111110000000000,0b0010010000000000,eor),
               Instruc("out",0b1111100000000000,0b1011100000000000,out),
               Instruc("ldi",0b1111000000000000,0b1110000000000000,ldi),
-              Instruc("rcall",0b1111000000000000,0b1101000000000000,rcall)]
+              Instruc("rcall",0b1111000000000000,0b1101000000000000,rcall),
+              Instruc("sbi",0b1111111100000000,0b1001101000000000,sbi)]
 
 file=open("main.bin","rb")
 content=file.read()

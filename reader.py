@@ -1,3 +1,7 @@
+print("\n\n\n");
+
+
+
 class stateMachine:
     def __init__(self):
         self.pc=0;
@@ -73,11 +77,17 @@ def out(p):
     io_mem[ioport]=cpu.regfile[srcReg];
     print("");
     
+def inp(p):
+    srcReg=(p&0b0000000111110000)>>4
+    ioport=(p&0b0000000000001111)|((p&0b0000011000000000)>>5)
+    print("IN",f"R{srcReg} <- IO",hex(ioport),end="   ");
+    cpu.regfile[srcReg]=io_mem[ioport];
+    print("");
 
 def ldi(p):
     reg=((p&0b0000000011110000)>>4)+16;
     constant=((p&0b0000111100000000)>>4)|(p&0b0000000000001111)
-    print(f"NUM: {constant} -> R{reg}")
+    print(f"LDI     NUM: {constant} -> R{reg}")
     cpu.regfile[reg]=constant
 
 
@@ -103,6 +113,7 @@ def sbi(p):
 InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
               Instruc("eor",0b1111110000000000,0b0010010000000000,eor),
               Instruc("out",0b1111100000000000,0b1011100000000000,out),
+              Instruc("in",0b1111100000000000,0b1011000000000000,inp),
               Instruc("ldi",0b1111000000000000,0b1110000000000000,ldi),
               Instruc("rcall",0b1111000000000000,0b1101000000000000,rcall),
               Instruc("sbi",0b1111111100000000,0b1001101000000000,sbi)]
@@ -117,10 +128,20 @@ while cpu.pc<len(content):
     low=content[cpu.pc];
     high=content[cpu.pc+1];
     result=((high<<8) | low);
+    flag=0
     for ins in InstrucTable:
         if (ins.mask & result) == ins.pattern:
+            flag=1;
             cpu.pc+=2;
             ins.handler(result);
+        elif flag==1:
+            break;
+    if flag==1:
+        flag=0;
+    else:
+        print("\nExecution Halted\n\n\n")
+        break;
+
     
 
 

@@ -116,12 +116,18 @@ def sbi(p):
     ioaddr=(p&0b0000000011111000)>>3;
     io_mem[ioaddr]|=1<<byteorder;
     print("SBI",f"B{byteorder}","-S>","IO",hex(ioaddr),)
-    
+
+def setStatFlag(*,carry=0,zero=0,negative=0,overflow=0,sign=0,half_carry=0,transfer_bit=0,interuppt_en=0):
+    cpu.sreg|=(1*carry)<<0|(1*zero)<<1|(1*negative)<<2|(1*overflow)<<3|(1*sign)<<4|(1*half_carry)<<5|(1*transfer_bit)<<6|(1*interuppt_en)<<7
+def clearStatFlag(*,carry=1,zero=1,negative=1,overflow=1,sign=1,half_carry=1,transfer_bit=1,interuppt_en=1):
+    cpu.sreg&=(1*carry)<<0|(1*zero)<<1|(1*negative)<<2|(1*overflow)<<3|(1*sign)<<4|(1*half_carry)<<5|(1*transfer_bit)<<6|(1*interuppt_en)<<7
+
 def subi(p):
     regi=(((p&0b0000000011110000)|(1<<8))>>4)
     k=(p&0b0000000000001111)|((p&0b0000111100000000)>>4)
     #-------------------------------------
-    if(cpu.regfile[regi]):
+    if(cpu.regfile[regi]<k):
+        setStatFlag(carry=1);
         pass
     #-------------------------------------
     print("SUBI",f"R{regi} - {k} = {cpu.regfile[regi]}")

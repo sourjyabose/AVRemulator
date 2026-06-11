@@ -7,6 +7,7 @@ class stateMachine:
         self.pc=0;
         self.regfile=[0]*32;
         self.spl=0;
+        self.sreg=0;
         
 
 
@@ -26,15 +27,24 @@ class io:
     def __init__(self):
         self.__ioaddr=[0]*(95-31);
         self.funcList=[self.noop]*(95-31);
+#----------IO Functions------------------------
         self.funcList[0x3d]=self.setspl;
+        self.funcList[0x3f]=self.setsreg
+#---------------------------------------------
+
     def __getitem__(self,key):
         return self.__ioaddr[key]
     def __setitem__(self,key,value):
         self.__ioaddr[key]=value;
         self.funcList[key](key,value)
-    def setspl(self,key,value):
+
+
+    def setspl(self,key,value=0):
         cpu.spl=value;
         print(f"SPL: {cpu.spl}",end="")
+    def setsreg(self,key,value=0):
+        cpu.sreg=value;
+        pass
     def noop(self,key,value):
         pass
         
@@ -107,7 +117,12 @@ def sbi(p):
     io_mem[ioaddr]|=1<<byteorder;
     print("SBI",f"B{byteorder}","-S>","IO",hex(ioaddr),)
     
-
+def subi(p):
+    regi=(((p&0b0000000011110000)|(1<<8))>>4)
+    k=(p&0b0000000000001111)|((p&0b0000111100000000)>>4)
+    cpu.regfile[regi]-=k;
+    print("SUBI",f"R{regi} - {k} = {cpu.regfile[regi]}")
+    pass
 
 
 InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
@@ -116,7 +131,8 @@ InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
               Instruc("in",0b1111100000000000,0b1011000000000000,inp),
               Instruc("ldi",0b1111000000000000,0b1110000000000000,ldi),
               Instruc("rcall",0b1111000000000000,0b1101000000000000,rcall),
-              Instruc("sbi",0b1111111100000000,0b1001101000000000,sbi)]
+              Instruc("sbi",0b1111111100000000,0b1001101000000000,sbi),
+              Instruc("subi",0b1111000000000000,0b0101000000000000,subi)]
 
 file=open("main.bin","rb")
 content=file.read()
@@ -132,6 +148,7 @@ while cpu.pc<len(content):
     for ins in InstrucTable:
         if (ins.mask & result) == ins.pattern:
             flag=1;
+            print(hex(cpu.pc).ljust(6),end=" ")
             cpu.pc+=2;
             ins.handler(result);
         elif flag==1:

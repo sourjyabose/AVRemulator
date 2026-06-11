@@ -120,7 +120,10 @@ def sbi(p):
 def subi(p):
     regi=(((p&0b0000000011110000)|(1<<8))>>4)
     k=(p&0b0000000000001111)|((p&0b0000111100000000)>>4)
-    cpu.regfile[regi]-=k;
+    #-------------------------------------
+    if(cpu.regfile[regi]):
+        pass
+    #-------------------------------------
     print("SUBI",f"R{regi} - {k} = {cpu.regfile[regi]}")
     pass
 
@@ -133,7 +136,7 @@ InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
               Instruc("rcall",0b1111000000000000,0b1101000000000000,rcall),
               Instruc("sbi",0b1111111100000000,0b1001101000000000,sbi),
               Instruc("subi",0b1111000000000000,0b0101000000000000,subi)]
-
+print(len(InstrucTable))
 file=open("main.bin","rb")
 content=file.read()
 i=0;

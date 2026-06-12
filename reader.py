@@ -122,7 +122,13 @@ def setStatFlag(*,carry=0,zero=0,negative=0,overflow=0,sign=0,half_carry=0,trans
 def clearStatFlag(*,carry=1,zero=1,negative=1,overflow=1,sign=1,half_carry=1,transfer_bit=1,interuppt_en=1):
     cpu.sreg&=(1*carry)<<0|(1*zero)<<1|(1*negative)<<2|(1*overflow)<<3|(1*sign)<<4|(1*half_carry)<<5|(1*transfer_bit)<<6|(1*interuppt_en)<<7
 def getStatFlag(*,carry=0,zero=0,negative=0,overflow=0,sign=0,half_carry=0,transfer_bit=0,interuppt_en=0):
-    pass
+    lst=[carry,zero,negative,overflow,sign,half_carry,transfer_bit,interuppt_en]
+    i=0
+    for x in lst:
+        if x==1:
+            break;
+        i+=1;
+    return ((cpu.sreg&(1<<i))>>i)
 
 def subi(p):
     regi=(((p&0b0000000011110000)|(1<<8))>>4)
@@ -144,14 +150,15 @@ def subci(p):
     regi=(((p&0b0000000011110000)|(1<<8))>>4)
     k=(p&0b0000000000001111)|((p&0b0000111100000000)>>4)
     #-------------------------------------
-    if(cpu.regfile[regi]<k):
-        setStatFlag(carry=1);
-        cpu.regfile[regi]|=1<<8
-        cpu.regfile[regi]-=k;
-        cpu.regfile[regi]&=0xFF
-    else:
-        cpu.regfile[regi]-=k;
+    if(cpu.regfile[regi]<k+getStatFlag(carry=1)):
         
+        cpu.regfile[regi]|=1<<8
+        cpu.regfile[regi]-=k+getStatFlag(carry=1);
+        cpu.regfile[regi]&=0xFF
+        setStatFlag(carry=1);
+    else:
+        cpu.regfile[regi]-=k+getStatFlag(carry=1);
+        clearStatFlag(carry=1)
     #-------------------------------------
     print("SBCI",f"R{regi} - {k} = {cpu.regfile[regi]}")
     pass
@@ -164,7 +171,7 @@ InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
               Instruc("rcall",0b1111000000000000,0b1101000000000000,rcall),
               Instruc("sbi",0b1111111100000000,0b1001101000000000,sbi),
               Instruc("subi",0b1111000000000000,0b0101000000000000,subi),
-              Instruc("sbci",0b1111000000000000,0b0100000000000000,subi)]
+              Instruc("sbci",0b1111000000000000,0b0100000000000000,subci)]
 print("Total Instructions:",len(InstrucTable),"\n\n")
 file=open("main.bin","rb")
 content=file.read()

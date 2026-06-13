@@ -145,6 +145,9 @@ def brne(p):
     print("BRNE",strg,offset)
     pass
 
+def noper(p):
+    print("NOP");
+
 def subi(p):
     regi=(((p&0b0000000011110000)|(1<<8))>>4)
     k=(p&0b0000000000001111)|((p&0b0000111100000000)>>4)
@@ -300,7 +303,8 @@ InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
               Instruc("sbi",0b1111111100000000,0b1001101000000000,sbi),
               Instruc("subi",0b1111000000000000,0b0101000000000000,subi),
               Instruc("sbci",0b1111000000000000,0b0100000000000000,sbci),
-              Instruc("brne",0b1111110000000111,0b1111010000000001,brne)]
+              Instruc("brne",0b1111110000000111,0b1111010000000001,brne),
+              Instruc("nop",0b1111111111111111,0b0000000000000000,noper)]
 print("Total Instructions:",len(InstrucTable),"\n\n")
 file=open("main.bin","rb")
 content=file.read()

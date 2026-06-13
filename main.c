@@ -6,9 +6,9 @@
 int main() {
 
     DDRB |= (1 << PB0);
-
-    while(1) {
-
+    int a=10;
+    while(a>0) {
+        a--;
         PORTB ^= (1 << PB0);
 
         _delay_ms(500);

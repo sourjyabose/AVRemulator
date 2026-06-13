@@ -129,10 +129,26 @@ def getStatFlag(*,carry=0,zero=0,negative=0,overflow=0,sign=0,half_carry=0,trans
             break;
         i+=1;
     return ((cpu.sreg&(1<<i))>>i)
+def getbit(p,n):
+    return (p&(1<<n))>>n
+
+def brne(p):
+    offset=(p&(0b0000001111111000))>>3
+    if(offset&0b0000000001000000>0):
+        offset-=128
+        pass
+    offset*=2;
+    strg="not jumping by"
+    if(getStatFlag(zero=1)>0):
+        strg="jumping by"
+        cpu.pc+=offset;
+    print("BRNE",strg,offset)
+    pass
 
 def subi(p):
     regi=(((p&0b0000000011110000)|(1<<8))>>4)
     k=(p&0b0000000000001111)|((p&0b0000111100000000)>>4)
+    old=cpu.regfile[regi];
     #-------------------------------------
     if(cpu.regfile[regi]<k):
         setStatFlag(carry=1);
@@ -141,14 +157,72 @@ def subi(p):
         cpu.regfile[regi]&=0xFF
     else:
         cpu.regfile[regi]-=k;
-        
+        clearStatFlag(carry=0)
     #-------------------------------------
+    #-----------------------------flag setting------------------------------------------------------------------------
+    clearStatFlag(half_carry=0);
+    clearStatFlag(sign=0);
+    
+    clearStatFlag(negative=0);
+    clearStatFlag(overflow=0);
+    z=getStatFlag(zero=1)
+    clearStatFlag(zero=0);
+    
+    setStatFlag(half_carry=( ( (not getbit(old,3)) and getbit(k,3) ) or ( getbit(cpu.regfile[regi],3) and getbit(k,3) ) or (getbit(cpu.regfile[regi],3) and (not getbit(old,3))  )   ))
+    setStatFlag(
+    carry=
+    (
+        ((not getbit(old,7)) and getbit(k,7))
+        or
+        (getbit(cpu.regfile[regi],7) and getbit(k,7))
+        or
+        (getbit(cpu.regfile[regi],7) and (not getbit(old,7)))
+    )
+)
+
+    # N
+    setStatFlag(
+        negative=getbit(cpu.regfile[regi],7)
+    )
+
+    # V
+    setStatFlag(
+        overflow=
+        (
+            (getbit(old,7) and (not getbit(k,7)) and (not getbit(cpu.regfile[regi],7)))
+            or
+            ((not getbit(old,7)) and getbit(k,7) and getbit(cpu.regfile[regi],7))
+        )
+    )
+
+    # S = N xor V
+    setStatFlag(
+        sign=
+        (
+            getbit(cpu.regfile[regi],7)
+            ^
+            (
+                (getbit(old,7) and (not getbit(k,7)) and (not getbit(cpu.regfile[regi],7)))
+                or
+                ((not getbit(old,7)) and getbit(k,7) and getbit(cpu.regfile[regi],7))
+            )
+        )
+    )
+
+    # Z
+    setStatFlag(
+        zero=(cpu.regfile[regi] == 0) and z) 
+
+
     print("SUBI",f"R{regi} - {k} = {cpu.regfile[regi]}")
     pass
+#------------------------------------------------------------------------------------------------------------------------------------------------
 
-def subci(p):
+
+def sbci(p):
     regi=(((p&0b0000000011110000)|(1<<8))>>4)
     k=(p&0b0000000000001111)|((p&0b0000111100000000)>>4)
+    old=cpu.regfile[regi];
     #-------------------------------------
     if(cpu.regfile[regi]<k+getStatFlag(carry=1)):
         
@@ -158,8 +232,62 @@ def subci(p):
         setStatFlag(carry=1);
     else:
         cpu.regfile[regi]-=k+getStatFlag(carry=1);
-        clearStatFlag(carry=1)
+        clearStatFlag(carry=0)
     #-------------------------------------
+    clearStatFlag(half_carry=0);
+    clearStatFlag(sign=0);
+    
+    clearStatFlag(negative=0);
+    clearStatFlag(overflow=0);
+    z=getStatFlag(zero=1)
+    clearStatFlag(zero=0);
+    
+    setStatFlag(half_carry=( ( (not getbit(old,3)) and getbit(k,3) ) or ( getbit(cpu.regfile[regi],3) and getbit(k,3) ) or (getbit(cpu.regfile[regi],3) and (not getbit(old,3))  )   ))
+    setStatFlag(
+    carry=
+    (
+        ((not getbit(old,7)) and getbit(k,7))
+        or
+        (getbit(cpu.regfile[regi],7) and getbit(k,7))
+        or
+        (getbit(cpu.regfile[regi],7) and (not getbit(old,7)))
+    )
+)
+
+    # N
+    setStatFlag(
+        negative=getbit(cpu.regfile[regi],7)
+    )
+
+    # V
+    setStatFlag(
+        overflow=
+        (
+            (getbit(old,7) and (not getbit(k,7)) and (not getbit(cpu.regfile[regi],7)))
+            or
+            ((not getbit(old,7)) and getbit(k,7) and getbit(cpu.regfile[regi],7))
+        )
+    )
+
+    # S = N xor V
+    setStatFlag(
+        sign=
+        (
+            getbit(cpu.regfile[regi],7)
+            ^
+            (
+                (getbit(old,7) and (not getbit(k,7)) and (not getbit(cpu.regfile[regi],7)))
+                or
+                ((not getbit(old,7)) and getbit(k,7) and getbit(cpu.regfile[regi],7))
+            )
+        )
+    )
+
+    # Z
+    setStatFlag(
+        zero=(cpu.regfile[regi] == 0) and z) 
+    
+
     print("SBCI",f"R{regi} - {k} = {cpu.regfile[regi]}")
     pass
 
@@ -171,7 +299,8 @@ InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
               Instruc("rcall",0b1111000000000000,0b1101000000000000,rcall),
               Instruc("sbi",0b1111111100000000,0b1001101000000000,sbi),
               Instruc("subi",0b1111000000000000,0b0101000000000000,subi),
-              Instruc("sbci",0b1111000000000000,0b0100000000000000,subci)]
+              Instruc("sbci",0b1111000000000000,0b0100000000000000,sbci),
+              Instruc("brne",0b1111110000000111,0b1111010000000001,brne)]
 print("Total Instructions:",len(InstrucTable),"\n\n")
 file=open("main.bin","rb")
 content=file.read()

@@ -294,6 +294,13 @@ def sbci(p):
     print("SBCI",f"R{regi} - {k} = {cpu.regfile[regi]}")
     pass
 
+def sbiw(p):
+    k=(((p&0b0000000011000000)>>2)|(0b0000000000001111))
+    r=((p&0b0000000000110000)>>4)+24
+    
+
+    pass
+
 InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
               Instruc("eor",0b1111110000000000,0b0010010000000000,eor),
               Instruc("out",0b1111100000000000,0b1011100000000000,out),
@@ -304,6 +311,7 @@ InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
               Instruc("subi",0b1111000000000000,0b0101000000000000,subi),
               Instruc("sbci",0b1111000000000000,0b0100000000000000,sbci),
               Instruc("brne",0b1111110000000111,0b1111010000000001,brne),
+              Instruc("sbiw",0b1111111100000000,0b1001011100000000,sbiw),
               Instruc("nop",0b1111111111111111,0b0000000000000000,noper)]
 print("Total Instructions:",len(InstrucTable),"\n\n")
 file=open("main.bin","rb")

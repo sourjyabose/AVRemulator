@@ -139,7 +139,7 @@ def brne(p):
         pass
     offset*=2;
     strg="not jumping by"
-    if(getStatFlag(zero=1)>0):
+    if(getStatFlag(zero=1)==0):
         strg="jumping by"
         cpu.pc+=offset;
     print("BRNE",strg,offset)
@@ -214,7 +214,7 @@ def subi(p):
 
     # Z
     setStatFlag(
-        zero=(cpu.regfile[regi] == 0) and z) 
+        zero=(cpu.regfile[regi] == 0)) 
 
 
     print("SUBI",f"R{regi} - {k} = {cpu.regfile[regi]}")
@@ -295,10 +295,64 @@ def sbci(p):
     pass
 
 def sbiw(p):
-    k=(((p&0b0000000011000000)>>2)|(0b0000000000001111))
-    r=((p&0b0000000000110000)>>4)+24
-    
+    k=(((p&0b0000000011000000)>>2)|(p&0b0000000000001111))
+    r=2*((p&0b0000000000110000)>>4)+24
+    hval=cpu.regfile[r+1];
+    lval=cpu.regfile[r];
+    val=(hval<<8)|lval
+    oldval=val;
+    val-=k;
+    val&=0xFFFF
+    hval=(val&0b1111111100000000)>>8
+    lval=(val&0b0000000011111111)
+    cpu.regfile[r+1]=hval;
+    cpu.regfile[r]=lval;
+    clearStatFlag(sign=0);
+    clearStatFlag(negative=0);
+    clearStatFlag(overflow=0);
+    clearStatFlag(zero=0);
+    clearStatFlag(carry=0);
 
+    setStatFlag(
+        carry=
+        (
+            getbit(val,15)
+            and
+            (not getbit(oldval,15))
+        )
+    );
+
+    setStatFlag(
+        negative=getbit(val,15)
+    );
+
+    setStatFlag(
+        overflow=
+        (
+            getbit(val,15)
+            and
+            (not getbit(oldval,15))
+        )
+    );
+
+    setStatFlag(
+        sign=
+        (
+            getbit(val,15)
+            ^
+            (
+                getbit(val,15)
+                and
+                (not getbit(oldval,15))
+            )
+        )
+    );
+
+    setStatFlag(
+        zero=((val & 0xFFFF) == 0)
+    );
+
+    print(f"SBIW R{r+1}:{r} - {k}")
     pass
 
 InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),

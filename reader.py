@@ -395,6 +395,8 @@ InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
               Instruc("nop",0b1111111111111111,0b0000000000000000,noper),
               Instruc("ret",0b1111111111111111,0b1001010100001000,ret),
               Instruc("cpi",0b1111000000000000,0b0011000000000000,cpi)]
+
+
 print("Total Instructions:",len(InstrucTable),"\n\n")
 file=open("main.bin","rb")
 content=file.read()

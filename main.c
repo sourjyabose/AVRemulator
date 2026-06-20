@@ -6,11 +6,11 @@
 int main() {
 
     DDRB |= (1 << PB0);
-    int a=10;
+    int a=100;
     while(a>0) {
         a--;
         PORTB ^= (1 << PB0);
 
-        _delay_ms(500);
+        _delay_ms(1);
     }
 }

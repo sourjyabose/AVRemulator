@@ -1,5 +1,8 @@
 print("\n\n\n");
 
+monitorarr=[]
+def monitor(b,c):
+    monitorarr.append(c)
 
 
 class stateMachine:
@@ -30,6 +33,7 @@ class io:
 #----------IO Functions------------------------
         self.funcList[0x3d]=self.setspl;
         self.funcList[0x3f]=self.setsreg
+        self.funcList[0x18]=monitor
 #---------------------------------------------
 
     def __getitem__(self,key):
@@ -64,6 +68,12 @@ io_mem=io();
 def push(p):
     ram[cpu.spl]=p;
     cpu.spl-=1;
+
+def pop(p):
+    cpu.spl+=1
+    val=ram[cpu.spl]
+    #print("NUM:",val)
+    return val
 
 def rjump(p):
     res=p&0b0000111111111111;
@@ -103,13 +113,25 @@ def ldi(p):
 
 def rcall(p):
     offset=(p&0b0000111111111111)
-    cpu.pc+=2*offset;
-    print("RCALL",hex(cpu.pc),end="    ")
-    lowrbyte=cpu.pc&0b0000000011111111
+    if (offset & 0b0000100000000000) > 0:
+        offset-=4096
+    
+    lowrbyte= cpu.pc&0b0000000011111111
     highbyte=(cpu.pc&0b1111111100000000)>>8
     push(lowrbyte)
     push(highbyte)
+    cpu.pc+=2*offset;
+    print("RCALL",hex(cpu.pc),end="    ")
     print("");
+
+
+def ret(p):
+    print("RET", end=" ")
+    hval=(pop(p)<<8)
+    lval=(pop(p))
+    cpu.pc=hval|lval
+    print("")
+    pass;
 
 def sbi(p):
     byteorder=p&0b0000000000000111;
@@ -366,7 +388,8 @@ InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
               Instruc("sbci",0b1111000000000000,0b0100000000000000,sbci),
               Instruc("brne",0b1111110000000111,0b1111010000000001,brne),
               Instruc("sbiw",0b1111111100000000,0b1001011100000000,sbiw),
-              Instruc("nop",0b1111111111111111,0b0000000000000000,noper)]
+              Instruc("nop",0b1111111111111111,0b0000000000000000,noper),
+              Instruc("ret",0b1111111111111111,0b1001010100001000,ret)]
 print("Total Instructions:",len(InstrucTable),"\n\n")
 file=open("main.bin","rb")
 content=file.read()
@@ -391,6 +414,7 @@ while cpu.pc<len(content):
         flag=0;
     else:
         print("\nExecution Halted\n\n\n")
+        print(monitorarr,len(monitorarr))
         break;
 
     

@@ -377,6 +377,10 @@ def sbiw(p):
     print(f"SBIW R{r+1}:{r} - {k}")
     pass
 
+def cpi(p):
+    pass
+
+
 InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
               Instruc("eor",0b1111110000000000,0b0010010000000000,eor),
               Instruc("out",0b1111100000000000,0b1011100000000000,out),
@@ -389,7 +393,8 @@ InstrucTable=[Instruc("rjump",0b1111000000000000,0b1100000000000000,rjump),
               Instruc("brne",0b1111110000000111,0b1111010000000001,brne),
               Instruc("sbiw",0b1111111100000000,0b1001011100000000,sbiw),
               Instruc("nop",0b1111111111111111,0b0000000000000000,noper),
-              Instruc("ret",0b1111111111111111,0b1001010100001000,ret)]
+              Instruc("ret",0b1111111111111111,0b1001010100001000,ret),
+              Instruc("cpi",0b1111000000000000,0b0011000000000000,cpi)]
 print("Total Instructions:",len(InstrucTable),"\n\n")
 file=open("main.bin","rb")
 content=file.read()
